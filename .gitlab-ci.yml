@@ -1,0 +1,34 @@
+# Copyright (c) 2024 by Rivos Inc.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+image: "gitlab.ba.rivosinc.com:5050/rv/it/int/rivos-sdk:latest"
+
+include:
+  - project: 'rv/it/int/rivos-sdk'
+    ref: rivos/main
+    file: '/packager/gitlab-ci-packaging-helper.yml'
+
+# Run pipelines on pushes and on merge request events
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
+      when: never
+    - if: '$CI_COMMIT_BRANCH'
+ 
+build:
+  stage: build 
+  extends: .git-auth-fixup
+  script:
+    - ./edk2-build.sh
+
+# Trigger downstream pipeline on fs-sim 
+notify-fs-sim-repo:
+  stage: post-deploy
+  variables:
+    TEST_PATCHES: rv/sw/int/fw/cpu/edk2:$CI_COMMIT_REF_NAME
+  trigger:
+    project: rv/sw/int/fs-sim
+    branch: rivos/main 
+
