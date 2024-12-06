@@ -21,6 +21,8 @@ build:
   stage: build 
   extends: .git-auth-fixup
   script:
+    - apt-get update
+    - apt-get -y -qq --no-upgrade install acpica-tools 
     - ./edk2-build.sh
 
 # Trigger downstream pipeline on fs-sim 
