@@ -4,6 +4,13 @@
 
 image: "gitlab.ba.rivosinc.com:5050/rv/it/int/rivos-sdk:latest"
 
+# GLOBAL variables
+variables:
+  REPO_ROOT: "/builds"
+  SWINT_PATH: "rv/sw/int"
+  RPKG_CHECKOUT: "${REPO_ROOT}/${SWINT_PATH}/rpkg"
+  RPKGBUILDS_CHECKOUT: "${REPO_ROOT}/${SWINT_PATH}/rpkgbuilds"
+
 include:
   - project: 'rv/it/int/rivos-sdk'
     ref: rivos/main
@@ -16,21 +23,60 @@ workflow:
     - if: '$CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS'
       when: never
     - if: '$CI_COMMIT_BRANCH'
- 
-build:
-  stage: build 
+
+# This needs to live side by side with edk2 in order to simulate
+# a typical repo sync of the fw tree.  The edk2 Makefile assumes ../edk2-platforms
+.clone-edk2-platforms: &clone-edk2-platforms
+  - git clone --depth 1 --branch rivos/main https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ba.rivosinc.com/$SWINT_PATH/fw/cpu/edk2-platforms.git $REPO_ROOT/$SWINT_PATH/fw/cpu/edk2-platforms
+
+## TODO: This should be refactored into .docker-build-rpkg to handle both
+## rpkgbuilds/ locations and the legacy project-based .rpkgbuild files so we
+## have a single entry point for doing all rpkg builds
+.build-rpkg:
+  stage: build
+  dependencies: [prepare-version]
   extends: .git-auth-fixup
+  variables:
+    SDK_RPKG_NAME: "rivos-sdk-$RPKG_NAME"
+    RPKGBUILDFILE: "$SDK_RPKG_NAME.rpkgbuild"
+    DEB_OUT: "deb-out"
   script:
-    - apt-get update
-    - apt-get -y -qq --no-upgrade install acpica-tools 
-    - ./edk2-build.sh
+    - *clone-edk2-platforms
+    - |
+      GITLAB_SWINT_URL="https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.ba.rivosinc.com/$SWINT_PATH"
+      rm -rf "${RPKG_CHECKOUT}" "${RPKGBUILDS_CHECKOUT}"
+      git clone --depth=1 $GITLAB_SWINT_URL/rpkg.git "${RPKG_CHECKOUT}"
+      git clone --depth=1 $GITLAB_SWINT_URL/rpkgbuilds.git "${RPKGBUILDS_CHECKOUT}"
+
+      # Search for RPKGBUILDFILE prefering the new RPKGBUILDS_CHECKOUT location
+      for RPKGBUILDFILE in $RPKGBUILDS_CHECKOUT/$RPKGBUILDFILE $RPKGBUILDFILE; do
+        [[ -f "$RPKGBUILDFILE" ]] && break
+      done
+      if [[ ! -f "$RPKGBUILDFILE" ]]; then
+        echo "Can't find '$RPKGBUILDFILE'. Do you need to set RPKGBUILDFILE?"
+        exit 1
+      fi
+
+      export PATH="$RPKG_CHECKOUT/src:$PATH"
+      rm -rf "${DEB_OUT}"
+      rpkg installdeps "${SDK_RPKG_NAME}" --yes
+      rpkg -1 build "${SDK_RPKG_NAME}" --yes --install-root "${DEB_OUT}"
+      tar cavf "$DEB_OUT".tgz "$DEB_OUT"
+  artifacts:
+    paths:
+      - $DEB_OUT.tgz
+
+rpkg-build-edk2:
+  stage: build
+  extends: .build-rpkg
+  variables:
+    RPKG_NAME: "edk2"
 
 # Trigger downstream pipeline on fs-sim 
 notify-fs-sim-repo:
   stage: post-deploy
   variables:
-    TEST_PATCHES: rv/sw/int/fw/cpu/edk2:$CI_COMMIT_REF_NAME
+    TEST_PATCHES: $SWINT_PATH/fw/cpu/edk2:$CI_COMMIT_REF_NAME
   trigger:
-    project: rv/sw/int/fs-sim
+    project: $SWINT_PATH/fs-sim
     branch: rivos/main 
-
