@@ -10,7 +10,7 @@ export EDK_PLATFORMS := $(WORKSPACE)/edk2-platforms
 export EDK_TOOLS := $(WORKSPACE)/BaseTools
 export CONF_PATH := $(WORKSPACE)/Conf
 export PACKAGES_PATH := $(WORKSPACE):$(EDK_PLATFORMS)
-export GCC5_RISCV64_PREFIX := riscv64-unknown-linux-gnu-
+export GCC5_RISCV64_PREFIX := riscv64-linux-gnu-
 
 VENV := $(WORKSPACE)/.venv
 # Force our shiny new venv onto the PATH
