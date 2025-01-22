@@ -72,6 +72,28 @@ rpkg-build-edk2:
   variables:
     RPKG_NAME: "edk2"
 
+#############################################################################
+# PACKAGE
+#############################################################################
+
+.package-deb-template:
+  extends: .package-deb-rpkg
+  variables:
+    PKG_ARCH: "all"
+    PKG_UPSTREAM_VERSION: "1.0.0"
+
+package-deb-edk2:
+  extends: .package-deb-template
+  needs:
+    - prepare-version
+    - rpkg-build-edk2
+  dependencies:
+    - prepare-version
+    - rpkg-build-edk2
+  variables:
+    PKG_NAME: "edk2"
+    RPKGBUILDFILE: "${PKG_NAME}.rpkgbuild"
+
 # Trigger downstream pipeline on fs-sim 
 notify-fs-sim-repo:
   stage: post-deploy
