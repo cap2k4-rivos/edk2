@@ -1,4 +1,4 @@
-# SPDX-FileCopyrightText: Copyright (c) 2024 by Rivos Inc.
+# SPDX-FileCopyrightText: Copyright (c) 2024-2025 by Rivos Inc.
 # Licensed under the Apache License, Version 2.0, see LICENSE for details.
 # SPDX-License-Identifier: Apache-2.0
 
@@ -11,6 +11,10 @@ export EDK_TOOLS := $(WORKSPACE)/BaseTools
 export CONF_PATH := $(WORKSPACE)/Conf
 export PACKAGES_PATH := $(WORKSPACE):$(EDK_PLATFORMS)
 export GCC5_RISCV64_PREFIX := riscv64-linux-gnu-
+PAYLOAD_SCRIPT = $(WORKSPACE)/UefiPayloadPkg/UniversalPayloadBuild.py
+PAYLOAD_OPTIONS = -t GCC5 --Fit -a RISCV64 -l $(FD_BASE) -c $(EDK_PLATFORMS)/Platform/Rivos/RivosPlatformPkg/UefiPayloadPkg.dsc
+DEBUG_PAYLOAD = ./Build/UefiPayloadPkgRISCV64/DEBUG_GCC5/FV/UEFIPAYLOAD.fd
+RELEASE_PAYLOAD = ./Build/UefiPayloadPkgRISCV64/RELEASE_GCC5/FV/UEFIPAYLOAD.fd
 
 VENV := $(WORKSPACE)/.venv
 # Force our shiny new venv onto the PATH
@@ -21,7 +25,7 @@ FD_BASE := 2415919104 # 0x90000000 in decimal
 
 # Default target
 .PHONY: all
-all: init-submodules symlink-platforms init-env base-tools build-payload
+all: init-submodules symlink-platforms init-env base-tools $(DEBUG_PAYLOAD) $(RELEASE_PAYLOAD)
 
 # Initialize Git Submodules
 .PHONY: init-submodules
@@ -50,17 +54,22 @@ init-env:
 .PHONY: base-tools
 base-tools:
 	. $(WORKSPACE)/edksetup.sh BaseTools && \
-	$(MAKE) -C $(EDK_TOOLS) clean && \
 	$(MAKE) -C $(EDK_TOOLS) && \
 	$(MAKE) -C $(EDK_TOOLS)/Source/C
 
 # Build Universal Payload
-.PHONY: build-payload
-build-payload:
+.PHONY: build-payloads
+build-payloads: $(DEBUG_PAYLOAD) $(RELEASE_PAYLOAD)
+
+# DEBUG version of the payload
+$(DEBUG_PAYLOAD):
 	. $(WORKSPACE)/edksetup.sh BaseTools && \
-	$(PYTHON) $(WORKSPACE)/UefiPayloadPkg/UniversalPayloadBuild.py \
-	    -t GCC5 --Fit -a RISCV64 -l $(FD_BASE) \
-	    -c $(EDK_PLATFORMS)/Platform/Rivos/RivosPlatformPkg/UefiPayloadPkg.dsc
+    $(PYTHON) $(PAYLOAD_SCRIPT) $(PAYLOAD_OPTIONS)
+
+# RELEASE version of the payload used by the SPI flash image
+$(RELEASE_PAYLOAD):
+	. $(WORKSPACE)/edksetup.sh BaseTools && \
+    $(PYTHON) $(PAYLOAD_SCRIPT) $(PAYLOAD_OPTIONS) -b RELEASE
 
 # Clean up
 .PHONY: clean
