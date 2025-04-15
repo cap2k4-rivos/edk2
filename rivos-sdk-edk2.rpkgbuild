@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# SPDX-FileCopyrightText: Copyright (c) 2024 by Rivos Inc.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+DESCRIPTION="EDK2"
+
+## PIP dependencies for this project are described in pip-requirements.txt under
+## the project root and handled directly via a virtual env in the Makefile
+## Make any edits there.
+#PIP_BDEPEND="
+#"
+
+# Ubuntu packages in builder arch
+BDEPEND="
+  python3-dev
+  acpica-tools
+  swig
+  gcc-riscv64-linux-gnu
+  g++-riscv64-linux-gnu
+"
+
+## Which cross-compiled or native architectures are valid, * in front of default
+VALID_CROSS="*native"
+
+## Relative path to the repo
+REPO_PATH="rv/sw/int/fw/cpu/edk2"
+
+src_configure() {
+    return 0
+}
+
+src_compile() {
+    make
+}
+
+src_test() {
+    return 0
+}
+
+src_install() {
+    local install_path="rivos/fw/edk2"
+    local out_dir="$OUT_ROOT/$install_path"
+    local build_root="./Build/UefiPayloadPkgRISCV64"
+
+    safe_rmrf $out_dir
+    mkdir -p $out_dir
+
+    cp $build_root/DEBUG_GCC5/FV/UEFIPAYLOAD.fd $out_dir/UEFIPAYLOAD-debug.fd
+    cp $build_root/RELEASE_GCC5/FV/UEFIPAYLOAD.fd $out_dir/UEFIPAYLOAD-release.fd
+}
+
+src_clean() {
+    make clean
+}
