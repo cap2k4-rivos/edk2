@@ -43,12 +43,14 @@ src_install() {
     local install_path="rivos/fw/edk2"
     local out_dir="$OUT_ROOT/$install_path"
     local build_root="./Build/UefiPayloadPkgRISCV64"
+    local rivos_build_root="./Build/RivosPlatformPkg"
 
     safe_rmrf $out_dir
     mkdir -p $out_dir
 
     cp $build_root/DEBUG_GCC5/FV/UEFIPAYLOAD.fd $out_dir/UEFIPAYLOAD-debug.fd
     cp $build_root/RELEASE_GCC5/FV/UEFIPAYLOAD.fd $out_dir/UEFIPAYLOAD-release.fd
+    cp $rivos_build_root/DEBUG_GCC5/FV/STANDALONE_MM.fd $out_dir
 }
 
 src_clean() {

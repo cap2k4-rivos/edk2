@@ -12,9 +12,12 @@ export CONF_PATH := $(WORKSPACE)/Conf
 export PACKAGES_PATH := $(WORKSPACE):$(EDK_PLATFORMS)
 export GCC5_RISCV64_PREFIX := riscv64-linux-gnu-
 PAYLOAD_SCRIPT = $(WORKSPACE)/UefiPayloadPkg/UniversalPayloadBuild.py
-PAYLOAD_OPTIONS = -t GCC5 --Fit -a RISCV64 -l $(FD_BASE) -c $(EDK_PLATFORMS)/Platform/Rivos/RivosPlatformPkg/UefiPayloadPkg.dsc
+COMMON_OPTIONS = -t GCC5 -a RISCV64
+PAYLOAD_OPTIONS = $(COMMON_OPTIONS) --Fit -l $(FD_BASE) -c $(EDK_PLATFORMS)/Platform/Rivos/RivosPlatformPkg/UefiPayloadPkg.dsc
 DEBUG_PAYLOAD = ./Build/UefiPayloadPkgRISCV64/DEBUG_GCC5/FV/UEFIPAYLOAD.fd
 RELEASE_PAYLOAD = ./Build/UefiPayloadPkgRISCV64/RELEASE_GCC5/FV/UEFIPAYLOAD.fd
+STANDALONE_PAYLOAD_OPTIONS = $(COMMON_OPTIONS) -p $(EDK_PLATFORMS)/Platform/Rivos/RivosPlatformPkg/RiscVRivosStandaloneMm.dsc -b DEBUG -D FW_BASE_ADDRESS=$(FW_BASE)
+STANDALONE_PAYLOAD = ./Build/RivosPlatformPkg/DEBUG_GCC5/FV/STANDALONE_MM.fd
 
 VENV := $(WORKSPACE)/.venv
 # Force our shiny new venv onto the PATH
@@ -22,10 +25,11 @@ export PATH := $(VENV)/bin:$(PATH)
 export PYTHON := $(VENV)/bin/python3
 export PIP := $(VENV)/bin/pip
 FD_BASE := 2415919104 # 0x90000000 in decimal
+FW_BASE := 0xA0000000
 
 # Default target
 .PHONY: all
-all: init-submodules symlink-platforms init-env base-tools $(DEBUG_PAYLOAD) $(RELEASE_PAYLOAD)
+all: init-submodules symlink-platforms init-env base-tools $(DEBUG_PAYLOAD) $(RELEASE_PAYLOAD) $(STANDALONE_PAYLOAD)
 
 # Initialize Git Submodules
 .PHONY: init-submodules
@@ -70,6 +74,10 @@ $(DEBUG_PAYLOAD):
 $(RELEASE_PAYLOAD):
 	. $(WORKSPACE)/edksetup.sh BaseTools && \
     $(PYTHON) $(PAYLOAD_SCRIPT) $(PAYLOAD_OPTIONS) -b RELEASE
+
+$(STANDALONE_PAYLOAD):
+	. $(WORKSPACE)/edksetup.sh BaseTools && \
+    build $(STANDALONE_PAYLOAD_OPTIONS)
 
 # Clean up
 .PHONY: clean
