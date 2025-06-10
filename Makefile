@@ -13,7 +13,7 @@ export PACKAGES_PATH := $(WORKSPACE):$(EDK_PLATFORMS)
 export GCC5_RISCV64_PREFIX := riscv64-linux-gnu-
 PAYLOAD_SCRIPT = $(WORKSPACE)/UefiPayloadPkg/UniversalPayloadBuild.py
 COMMON_OPTIONS = -t GCC5 -a RISCV64
-PAYLOAD_OPTIONS = $(COMMON_OPTIONS) --Fit -l $(FD_BASE) -c $(EDK_PLATFORMS)/Platform/Rivos/RivosPlatformPkg/UefiPayloadPkg.dsc
+PAYLOAD_OPTIONS = $(COMMON_OPTIONS) --Fit -l $(FD_BASE) -c Platform/Rivos/RivosPlatformPkg/UefiPayloadPkg.dsc
 DEBUG_PAYLOAD = ./Build/UefiPayloadPkgRISCV64/DEBUG_GCC5/FV/UEFIPAYLOAD.fd
 RELEASE_PAYLOAD = ./Build/UefiPayloadPkgRISCV64/RELEASE_GCC5/FV/UEFIPAYLOAD.fd
 STANDALONE_PAYLOAD_OPTIONS = $(COMMON_OPTIONS) -p $(EDK_PLATFORMS)/Platform/Rivos/RivosPlatformPkg/RiscVRivosStandaloneMm.dsc -b DEBUG -D FW_BASE_ADDRESS=$(FW_BASE)
@@ -46,18 +46,18 @@ symlink-platforms:
 	ln -snf ../edk2-platforms edk2-platforms
 
 # Initialize the virtual environment
+# "activate" is handled by the export PATH above
 .PHONY: init-env
 init-env:
 	@if [ ! -f "$(PYTHON)" ]; then \
 	    python3 -m venv $(VENV); \
-       . $(EDK_SOURCES)/.venv/bin/activate && \
 	    $(PIP) install -r $(WORKSPACE)/pip-requirements.txt --upgrade; \
 	fi
 
 # Build BaseTools
 .PHONY: base-tools
 base-tools:
-	. $(WORKSPACE)/edksetup.sh BaseTools && \
+	. $(WORKSPACE)/edksetup.sh && \
 	$(MAKE) -C $(EDK_TOOLS) && \
 	$(MAKE) -C $(EDK_TOOLS)/Source/C
 
@@ -67,15 +67,18 @@ build-payloads: $(DEBUG_PAYLOAD) $(RELEASE_PAYLOAD)
 
 # DEBUG version of the payload
 $(DEBUG_PAYLOAD):
+	. $(WORKSPACE)/edksetup.sh && \
 	. $(WORKSPACE)/edksetup.sh BaseTools && \
     $(PYTHON) $(PAYLOAD_SCRIPT) $(PAYLOAD_OPTIONS)
 
 # RELEASE version of the payload used by the SPI flash image
 $(RELEASE_PAYLOAD):
+	. $(WORKSPACE)/edksetup.sh && \
 	. $(WORKSPACE)/edksetup.sh BaseTools && \
     $(PYTHON) $(PAYLOAD_SCRIPT) $(PAYLOAD_OPTIONS) -b RELEASE
 
 $(STANDALONE_PAYLOAD):
+	. $(WORKSPACE)/edksetup.sh && \
 	. $(WORKSPACE)/edksetup.sh BaseTools && \
     build $(STANDALONE_PAYLOAD_OPTIONS)
 

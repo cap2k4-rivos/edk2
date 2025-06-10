@@ -49,7 +49,7 @@ src_install() {
     mkdir -p $out_dir
 
     cp $build_root/DEBUG_GCC5/FV/UEFIPAYLOAD.fd $out_dir/UEFIPAYLOAD-debug.fd
-    cp $build_root/RELEASE_GCC5/FV/UEFIPAYLOAD.fd $out_dir/UEFIPAYLOAD-release.fd
+    cp $build_root/UniversalPayload.fit $out_dir/UEFIPAYLOAD-release.fd
     cp $rivos_build_root/DEBUG_GCC5/FV/STANDALONE_MM.fd $out_dir
 }
 
