@@ -28,3 +28,9 @@
   RiscVSbiLib
   SafeIntLib
   CommonRiscvMpxyLib
+
+[Protocols]
+  gEfiMmCommunication2ProtocolGuid
+
+[Pcd]
+  gEfiMdePkgTokenSpaceGuid.PcdMMPassThroughEnable
