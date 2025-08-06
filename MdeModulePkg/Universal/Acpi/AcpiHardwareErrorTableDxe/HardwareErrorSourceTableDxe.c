@@ -120,12 +120,13 @@ HestReadyToBootEventNotify (
     return;
   }
 
+  DEBUG ((DEBUG_INFO, "RAS Service: RAS_GET_NUM_ERR_SRCS\n"));
   // Fetch the number of hardware error sources available
   Status = RacGetNumberErrorSources (&NumSources);
   if (EFI_ERROR (Status)) {
     return;
   }
-
+  DEBUG ((DEBUG_INFO, "RAS Service: RAS_GET_ERR_SRCS_ID_LIST\n"));
   // Fetch the unique source ID for each error source.
   Status = RacGetErrorSourceIDList (&ErrSources, &NumSources);
   if (EFI_ERROR (Status)) {
@@ -150,6 +151,7 @@ HestReadyToBootEventNotify (
   tESS = BaseErrSrcStructure = HEST_TO_BASE_ERROR_STRUCTURE (HestTable);
 
   for (i = 0; i < NumSources; i++) {
+    DEBUG ((DEBUG_INFO, "RAS Service: RAS_GET_ERR_SRC_DESC\n"));
     Status = RacGetErrorSourceDescriptor (
                ErrSources[i],
                &DescriptorType,
