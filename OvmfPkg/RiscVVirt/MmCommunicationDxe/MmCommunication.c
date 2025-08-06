@@ -199,11 +199,11 @@ FillMmMpxyChannelIdInfo (
   for (UINT8 Index = 0; Index < sizeof (GuidChidArray)/ sizeof (struct GuidMapping); Index++) {
     Status = GetDTChannelForGuid (FdtClient, GuidChidArray[Index].NodeName, &ChannelId);
     if (!EFI_ERROR (Status)) {
-      DEBUG ((DEBUG_INFO, "Found Channel %d for Guid Idx %d", ChannelId, Index));
+      DEBUG ((DEBUG_INFO, "Found Channel %d for Guid Idx %d\n", ChannelId, Index));
       GuidChidArray[Index].ChannelId = ChannelId;
       ChannelId                      = 0; // Get ready for next node
     } else {
-      DEBUG ((DEBUG_INFO, "No Channel Mapping Found Guid Idx %d", Index));
+      DEBUG ((DEBUG_INFO, "No Channel Mapping Found Guid Idx %d\n", Index));
     }
   }
 
@@ -323,7 +323,7 @@ MmCommunication2Communicate (
 
   Status = GetChannelForGuid (&CommunicateHeader->HeaderGuid, &ChannelId);
   if (EFI_ERROR (Status)) {
-    DEBUG ((DEBUG_INFO, "No Channel Mapping Found For Requested Service"));
+    DEBUG ((DEBUG_INFO, "No Channel Mapping Found For Requested Service\n"));
     return Status;
   }
 
@@ -417,7 +417,7 @@ GetMmCompatibility (
 
   Status = SbiMpxySendMessage (
              ChannelId,
-             RISCV_MSG_ID_SMM_VERSION,
+             RISCV_MSG_ID_SMM_GET_ATTRIBUTES,
              (VOID *)&MmVersionArgs,
              sizeof (MM_GET_ATTRIBUTES),
              (VOID *)&MmVersionArgs,
