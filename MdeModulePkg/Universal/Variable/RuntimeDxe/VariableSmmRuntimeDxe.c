@@ -283,6 +283,8 @@ VariableLockRequestToLock (
     return EFI_INVALID_PARAMETER;
   }
 
+  DEBUG ((DEBUG_INFO, "Variable Service: VariableLockRequestToLock\n"));
+
   VariableNameSize = StrSize (VariableName);
   VariableToLock   = NULL;
 
@@ -372,6 +374,8 @@ VarCheckVariablePropertySet (
   UINTN                                                 PayloadSize;
   SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY  *CommVariableProperty;
 
+  DEBUG ((DEBUG_INFO, "Variable Service: VarCheckVariablePropertySet\n"));
+
   if ((Name == NULL) || (Name[0] == 0) || (Guid == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
@@ -448,6 +452,8 @@ VarCheckVariablePropertyGet (
   UINTN                                                 PayloadSize;
   SMM_VARIABLE_COMMUNICATE_VAR_CHECK_VARIABLE_PROPERTY  *CommVariableProperty;
 
+  DEBUG ((DEBUG_INFO, "Variable Service: VarCheckVariablePropertyGet\n"));
+
   if ((Name == NULL) || (Name[0] == 0) || (Guid == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
@@ -506,6 +512,7 @@ SyncRuntimeCache (
   VOID
   )
 {
+  DEBUG ((DEBUG_INFO, "Variable Service: SyncRuntimeCache\n"));
   //
   // Init the communicate buffer. The buffer data size is:
   // SMM_COMMUNICATE_HEADER_SIZE + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE.
@@ -588,6 +595,8 @@ FindVariableInRuntimeCache (
   if ((VariableName == NULL) || (VendorGuid == NULL) || (DataSize == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
+
+  DEBUG ((DEBUG_INFO, "Variable Service: FindVariableInRuntimeCache\n"));
 
   ZeroMem (&RtPtrTrack, sizeof (RtPtrTrack));
 
@@ -703,6 +712,8 @@ FindVariableInSmm (
   if ((VariableName == NULL) || (VendorGuid == NULL) || (DataSize == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
+
+  DEBUG ((DEBUG_INFO, "Variable Service: FindVariableInSmm\n"));
 
   TempDataSize      = *DataSize;
   VariableNameSize  = StrSize (VariableName);
@@ -978,6 +989,8 @@ GetNextVariableNameInSmm (
     return EFI_INVALID_PARAMETER;
   }
 
+  DEBUG ((DEBUG_INFO, "Variable Service: GetNextVariableNameInSmm\n"));
+
   //
   // Init the communicate buffer. The buffer data size is:
   // SMM_COMMUNICATE_HEADER_SIZE + SMM_VARIABLE_COMMUNICATE_HEADER_SIZE + PayloadSize.
@@ -1084,6 +1097,8 @@ RuntimeServiceGetNextVariableName (
     return EFI_INVALID_PARAMETER;
   }
 
+  DEBUG ((DEBUG_INFO, "Variable Service: RuntimeServiceGetNextVariableName\n"));
+
   //
   // Calculate the possible maximum length of name string, including the Null terminator.
   //
@@ -1165,6 +1180,8 @@ RuntimeServiceSetVariable (
   if ((DataSize != 0) && (Data == NULL)) {
     return EFI_INVALID_PARAMETER;
   }
+
+  DEBUG ((DEBUG_INFO, "Variable Service: RuntimeServiceSetVariable\n"));
 
   VariableNameSize  = StrSize (VariableName);
   SmmVariableHeader = NULL;
@@ -1419,7 +1436,7 @@ GetVariablePayloadSize (
   if (VariablePayloadSize == NULL) {
     return EFI_INVALID_PARAMETER;
   }
-
+  DEBUG ((DEBUG_INFO, "Variable Service: GetVariablePayloadSize\n"));
   AcquireLockOnlyAtBootTime (&mVariableServicesLock);
 
   //
